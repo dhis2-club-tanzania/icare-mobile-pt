@@ -24,7 +24,7 @@ class _LoginPageState extends State<LoginPage> {
 
   login(String basicAuth, String address) async {
     final response = await http.get(
-      address + '/openmrs/ws/rest/v1/session?v=custom:(authenticated,user:(privileges:(uuid,name,roles),roles:(uuid,name)))',headers: <String, String>{'Authorization': basicAuth},
+      address + '/openmrs/ws/rest/v1/session?v=custom:(authenticated,user:(privileges:(uuid,name,roles),roles:(uuid,name),userProperties))',headers: <String, String>{'Authorization': basicAuth},
     );
     Map<String, dynamic> responseMap = json.decode(response.body);
     if (responseMap['authenticated']) {
@@ -32,7 +32,7 @@ class _LoginPageState extends State<LoginPage> {
         failedToLogin = false;
       });
       Navigator.push(
-          context, MaterialPageRoute(builder: (_) => HomePage(authToken: basicAuth, baseUrl: address ))
+          context, MaterialPageRoute(builder: (_) => HomePage(authToken: basicAuth, baseUrl: address, userInfo: responseMap ))
       );
       // return responseMap;
     } else {
