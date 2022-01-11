@@ -19,17 +19,21 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   String currentTitle = 'Stock Taking';
   String currentModuleId = 'stocktaking';
+  List locations = [];
+  bool showDrawer = false;
   @override
   Widget build(BuildContext context) {
 
     return Scaffold(
       appBar: AppBar(title: Text(currentTitle),),
       body: Container(
-        child: currentModuleId == 'stocktaking' ? Container(
           child: FutureBuilder(
             future: getStoreLocations(widget.authToken, widget.baseUrl, widget.userInfo),
             builder: (BuildContext context, AsyncSnapshot snapshot) {
-              return snapshot.hasData  ? StockTakingPage(authToken: widget.authToken, baseUrl: widget.baseUrl):
+              // if (snapshot.hasData) {
+              //   this.locations  = snapshot.data as List;
+              // }
+              return snapshot.hasData  ? StockTakingPage(authToken: widget.authToken, baseUrl: widget.baseUrl, locationDetails: snapshot.data):
               Column(
                 children: [
                   SizedBox(
@@ -40,9 +44,8 @@ class _HomePageState extends State<HomePage> {
               );
             },
           ),
-        ): StockTakingPage(authToken: widget.authToken, baseUrl: widget.baseUrl),
       ),
-      drawer: Drawer(
+       drawer: Drawer(
         // Add a ListView to the drawer. This ensures the user can scroll
         // through the options in the drawer if there isn't enough vertical
         // space to fit everything.

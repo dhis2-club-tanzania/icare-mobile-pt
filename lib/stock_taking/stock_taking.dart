@@ -1,7 +1,9 @@
 
 import 'dart:async';
+import 'dart:ffi';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:icaremobile/shared/loaders.dart';
 import '/shared/capture_form_data.dart';
 import '/shared/drug_service.dart';
 import '/models/drug_response_model.dart';
@@ -15,7 +17,8 @@ import 'package:intl/intl.dart';
 class StockTakingPage extends StatefulWidget {
   final String authToken;
   final String baseUrl;
-  StockTakingPage({Key? key, required this.authToken, required this.baseUrl}) : super(key: key);
+  final dynamic locationDetails;
+  StockTakingPage({Key? key, required this.authToken, required this.baseUrl, required this.locationDetails}) : super(key: key);
   @override
   _StockTakingPageState createState() => _StockTakingPageState();
 }
@@ -31,6 +34,10 @@ class _StockTakingPageState extends State<StockTakingPage> {
   };
   // final formFields = [];
   final expiryDateController = TextEditingController();
+  final batchNoController = TextEditingController();
+  final quantityController = TextEditingController();
+  final buyingPriceController = TextEditingController();
+  final remarksController = TextEditingController();
   Future<void> _scan() async {
     String? barcode =  await FlutterBarcodeScanner.scanBarcode('#ff6666', 'Cancel', true, ScanMode.QR);
     // await scanner.scan();
@@ -38,6 +45,10 @@ class _StockTakingPageState extends State<StockTakingPage> {
       scannedBarCode = barcode;
     });
   }
+
+  String ledgerType = '06d7195f-1779-4964-b6a8-393b8152956a';
+  String location = '4187da6a-262f-45cf-abf1-a98ae80d0b8b';
+  bool savingStock = false;
 
   @override
   Widget build(BuildContext context) {
@@ -79,11 +90,12 @@ class _StockTakingPageState extends State<StockTakingPage> {
                                                       //padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 0),
                                                       padding: EdgeInsets.symmetric(horizontal: 50, vertical: 10),
                                                       child: TextField(
+                                                        controller: batchNoController,
                                                         keyboardType: TextInputType.text,
                                                         decoration: InputDecoration(
                                                             border: OutlineInputBorder(),
                                                             labelText: 'Batch',
-                                                            hintText: 'Enter Batch'),
+                                                            hintText: 'Enter batch No'),
                                                         maxLines: 1,
                                                       ),
                                                     ),
@@ -91,6 +103,7 @@ class _StockTakingPageState extends State<StockTakingPage> {
                                                       //padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 0),
                                                       padding: EdgeInsets.symmetric(horizontal: 50, vertical: 10),
                                                       child: TextField(
+                                                          controller: quantityController,
                                                           keyboardType: TextInputType.number,
                                                           inputFormatters: [
                                                             FilteringTextInputFormatter.digitsOnly,
@@ -137,7 +150,51 @@ class _StockTakingPageState extends State<StockTakingPage> {
                                                         ],
                                                       )
                                                     ),
-
+                                                    Padding(
+                                                      //padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 0),
+                                                      padding: EdgeInsets.symmetric(horizontal: 50, vertical: 10),
+                                                      child: TextField(
+                                                        controller: buyingPriceController,
+                                                        keyboardType: TextInputType.number,
+                                                        inputFormatters: [
+                                                          FilteringTextInputFormatter.digitsOnly,
+                                                        ],
+                                                        decoration: InputDecoration(
+                                                            border: OutlineInputBorder(),
+                                                            labelText: 'Buying price',
+                                                            hintText: 'Enter buying price'),
+                                                        maxLines: 1,
+                                                      ),
+                                                    ),
+                                                    Padding(
+                                                      //padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 0),
+                                                      padding: EdgeInsets.symmetric(horizontal: 50, vertical: 10),
+                                                      child: TextField(
+                                                        controller: remarksController,
+                                                        keyboardType: TextInputType.text,
+                                                        decoration: InputDecoration(
+                                                            border: OutlineInputBorder(),
+                                                            labelText: 'Remarks',
+                                                            hintText: 'Enter remarks'),
+                                                        maxLines: 1,
+                                                      ),
+                                                    ),
+                                                    Padding(
+                                                      padding:  EdgeInsets.symmetric(horizontal: 50, vertical: 10),
+                                                      child: TextButton(
+                                                        onPressed: () {
+                                                          onSave(drugWithGivenBarCode.uuid, batchNoController.text, quantityController.text, expiryDateController.text, buyingPriceController.text, remarksController.text);
+                                                        },
+                                                        child: Text(
+                                                          'Save',
+                                                          style: TextStyle(color: Colors.blue, fontSize: 15),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    Padding(
+                                                      padding: EdgeInsets.symmetric(horizontal: 50),
+                                                      child: savingStock ? CircularProgressLoader(''): Text(''),
+                                                    )
                                                   ],
                                                 ),
                                               ),
@@ -182,6 +239,41 @@ class _StockTakingPageState extends State<StockTakingPage> {
     setState(() {
       this.datePickerSet = !this.datePickerSet;
     });
+  }
+
+  void onSave(itemUuid, batchNo, quantity, expiryDate, buyingPrice, remarks) async {
+    setState(() {
+      this.savingStock = true;
+    });
+    Map<String, Object> data = {
+      'batchNo': batchNo,
+      'item': {
+        'uuid': itemUuid
+      },
+      'expiryDate': expiryDate + "T00:00:00.000Z",
+      'remarks': remarks,
+      'ledgerType': {
+        'uuid': '06d7195f-1779-4964-b6a8-393b8152956a'
+      },
+      'location': {
+        'uuid': '4187da6a-262f-45cf-abf1-a98ae80d0b8b'
+      },
+      'buyingPrice': int.parse(buyingPrice),
+      'quantity': int.parse(quantity)
+    };
+
+    // print("########################################################################");
+    print(data);
+    // print("########################################################################");
+
+    final Map<String, Object> response = await saveStock(widget.baseUrl, widget.authToken, data);
+    // print(response);
+    if (response['statusCode'] == 200) {
+      print("NDANI");
+      setState(() {
+        this.savingStock = false;
+      });
+    }
   }
 }
 
