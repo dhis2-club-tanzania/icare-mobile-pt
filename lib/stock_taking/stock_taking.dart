@@ -1,18 +1,14 @@
 
 import 'dart:async';
-import 'dart:ffi';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:icaremobile/shared/loaders.dart';
-import '/shared/capture_form_data.dart';
 import '/shared/drug_service.dart';
 import '/models/drug_response_model.dart';
 import '/shared/dropdown_with_search.dart';
 import '/stock_taking/qrcode_scanner.dart';
-import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
-import 'package:intl/intl.dart';
 
 class StockTakingPage extends StatefulWidget {
   final String authToken;
@@ -40,7 +36,6 @@ class _StockTakingPageState extends State<StockTakingPage> {
   final remarksController = TextEditingController();
   Future<void> _scan() async {
     String? barcode =  await FlutterBarcodeScanner.scanBarcode('#ff6666', 'Cancel', true, ScanMode.QR);
-    // await scanner.scan();
     setState(() {
       scannedBarCode = barcode;
     });
@@ -64,8 +59,7 @@ class _StockTakingPageState extends State<StockTakingPage> {
                 child: FutureBuilder(
                           future: searchDrugs(widget.authToken, widget.baseUrl, scannedBarCode),
                           builder: (BuildContext context,AsyncSnapshot snapshot) {
-                            final DataModel drugWithGivenBarCode = snapshot.data[0];
-                            return snapshot.hasData ? Column(
+                            return snapshot.hasData? Column(
                                 children: [
                                   Container(
                                     child: snapshot.data.length > 0 ? Center(
@@ -76,7 +70,7 @@ class _StockTakingPageState extends State<StockTakingPage> {
                                             SizedBox(
                                               height: 10,
                                             ),
-                                            Text(drugWithGivenBarCode.display, textAlign: TextAlign.center, style: TextStyle(fontSize: 15),),
+                                            Text(snapshot.data[0].display, textAlign: TextAlign.center, style: TextStyle(fontSize: 15),),
                                             // CaptureFormData( headerText: drugWithGivenBarCode.display, formFields: formFields)
                                             Container(
                                               child: SingleChildScrollView(
@@ -183,7 +177,7 @@ class _StockTakingPageState extends State<StockTakingPage> {
                                                       padding:  EdgeInsets.symmetric(horizontal: 50, vertical: 10),
                                                       child: TextButton(
                                                         onPressed: () {
-                                                          onSave(drugWithGivenBarCode.uuid, batchNoController.text, quantityController.text, expiryDateController.text, buyingPriceController.text, remarksController.text);
+                                                          onSave(snapshot.data[0].uuid, batchNoController.text, quantityController.text, expiryDateController.text, buyingPriceController.text, remarksController.text);
                                                         },
                                                         child: Text(
                                                           'Save',
@@ -223,7 +217,7 @@ class _StockTakingPageState extends State<StockTakingPage> {
                                           }
                                         ): Text(''),
                                 ]
-                            ): Text('Loading ......................................');
+                            ): CircularProgressLoader('');
                           }),
               ),
             ),
@@ -241,39 +235,45 @@ class _StockTakingPageState extends State<StockTakingPage> {
     });
   }
 
-  void onSave(itemUuid, batchNo, quantity, expiryDate, buyingPrice, remarks) async {
+  void onSave(conceptUuid, batchNo, quantity, expiryDate, buyingPrice, remarks) async {
     setState(() {
       this.savingStock = true;
     });
-    Map<String, Object> data = {
-      'batchNo': batchNo,
-      'item': {
-        'uuid': itemUuid
-      },
-      'expiryDate': expiryDate + "T00:00:00.000Z",
-      'remarks': remarks,
-      'ledgerType': {
-        'uuid': '06d7195f-1779-4964-b6a8-393b8152956a'
-      },
-      'location': {
-        'uuid': '4187da6a-262f-45cf-abf1-a98ae80d0b8b'
-      },
-      'buyingPrice': int.parse(buyingPrice),
-      'quantity': int.parse(quantity)
-    };
 
-    // print("########################################################################");
-    print(data);
-    // print("########################################################################");
+    final dynamic itemResponse = await getBillableItemUsingConceptUuid(widget.baseUrl, widget.authToken, conceptUuid);
+    print(itemResponse);
+    // if (itemResponse['statusCode'] == 200) {
+    //   Map<String, Object> data = {
+    //     'batchNo': batchNo,
+    //     'item': {
+    //       'uuid': ""
+    //     },
+    //     'expiryDate': expiryDate + "T00:00:00.000Z",
+    //     'remarks': remarks,
+    //     'ledgerType': {
+    //       'uuid': '06d7195f-1779-4964-b6a8-393b8152956a'
+    //     },
+    //     'location': {
+    //       'uuid': '4187da6a-262f-45cf-abf1-a98ae80d0b8b'
+    //     },
+    //     'buyingPrice': int.parse(buyingPrice),
+    //     'quantity': int.parse(quantity)
+    //   };
+    //
+    //   // print("########################################################################");
+    //   print(data);
+    //   // print("########################################################################");
+    //
+    //   final Map<String, Object> response = await saveStock(widget.baseUrl, widget.authToken, data);
+    //   // print(response);
+    //   if (response['statusCode'] == 200) {
+    //     print("NDANI");
+    //     setState(() {
+    //       this.savingStock = false;
+    //     });
+    //   }
+    // }
 
-    final Map<String, Object> response = await saveStock(widget.baseUrl, widget.authToken, data);
-    // print(response);
-    if (response['statusCode'] == 200) {
-      print("NDANI");
-      setState(() {
-        this.savingStock = false;
-      });
-    }
   }
 }
 

@@ -44,14 +44,19 @@ Future <DrugReferenceMapModel> createDrugReferenceMap(String baseUrl, String bas
 
 
 Future <Map<String, Object>> saveStock(String baseUrl, String basicAuthToken, data) async {
-  print("###############################################");
-  print(data.runtimeType);
-  print(jsonEncode(data));
-  print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
   final dynamic response = await http.post(
     baseUrl + '/openmrs/ws/rest/v1/store/ledger',body: jsonEncode(data), headers: <String, String>{'Authorization': basicAuthToken, 'Content-type': 'application/json;charset=utf-8'},
   );
   print(response.body);
+  final Map<String, Object> responseMap = json.decode(response.body);
+  return responseMap;
+}
+
+Future <Map<String, Object>> getBillableItemUsingConceptUuid(String baseUrl, String basicAuthToken, conceptUuid) async {
+  final String path = baseUrl + '/openmrs/ws/rest/v1/icare/itemByConcept/' + conceptUuid;
+  final dynamic response = await http.get(
+    path,headers: <String, String>{'Authorization': basicAuthToken},
+  );
   final Map<String, Object> responseMap = json.decode(response.body);
   return responseMap;
 }
