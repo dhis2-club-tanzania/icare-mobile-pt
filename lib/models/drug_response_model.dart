@@ -8,16 +8,21 @@ class DrugResults {
 class DataModel {
   final String uuid;
   final String display;
+  final dynamic concept;
 
-  DataModel({required this.uuid, required this.display});
+  DataModel({required this.uuid, required this.display, this.concept});
 
   factory DataModel.fromJson(Map<String, dynamic> json) {
     // ignore: unnecessary_null_comparison
     if (json == null) {
     }
     return DataModel(
-        uuid: json["uuid"],
-        display: json["display"]
+      uuid: json["uuid"],
+      display: json["display"],
+      concept: {
+        'uuid': json['concept']['uuid'],
+        'display': json['concept']['uuid']
+      }
     );
   }
 

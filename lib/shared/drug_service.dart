@@ -7,7 +7,7 @@ import 'dart:convert';
 Future <List<DataModel>> searchDrugs(basicAuthToken, baseUrl, searchingText) async {
   if (searchingText != '') {
     final dynamic response = await http.get(
-      baseUrl + '/openmrs/ws/rest/v1/drug?limit=10&q=' + searchingText,headers: <String, String>{'Authorization': basicAuthToken},
+      baseUrl + '/openmrs/ws/rest/v1/drug?v=custom:(uuid,display,concept:(uuid,display))&limit=10&q=' + searchingText,headers: <String, String>{'Authorization': basicAuthToken},
     );
     if (response.statusCode == 200) {
       final Map<dynamic, dynamic> responseMap = json.decode(response.body);
@@ -47,13 +47,16 @@ Future <Map<String, Object>> saveStock(String baseUrl, String basicAuthToken, da
   final dynamic response = await http.post(
     baseUrl + '/openmrs/ws/rest/v1/store/ledger',body: jsonEncode(data), headers: <String, String>{'Authorization': basicAuthToken, 'Content-type': 'application/json;charset=utf-8'},
   );
-  print(response.body);
+
+  print("@@@@@########################################################################");
+  print( json.decode(response.body));
+  print("@@@@@########################################################################");
   final Map<String, Object> responseMap = json.decode(response.body);
   return responseMap;
 }
 
 Future <Map<String, Object>> getBillableItemUsingConceptUuid(String baseUrl, String basicAuthToken, conceptUuid) async {
-  final String path = baseUrl + '/openmrs/ws/rest/v1/icare/itemByConcept/' + conceptUuid;
+  final String path = baseUrl + '/openmrs/ws/rest/v1/icare/itemByDrugConcept/' + conceptUuid;
   final dynamic response = await http.get(
     path,headers: <String, String>{'Authorization': basicAuthToken},
   );

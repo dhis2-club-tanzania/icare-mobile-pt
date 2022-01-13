@@ -48,8 +48,9 @@ class _StockTakingPageState extends State<StockTakingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       body: Container(
-        child: Column(
+        child: ListView(
           children: [
             FlatButton(
               onPressed: () =>_scan(),
@@ -63,7 +64,6 @@ class _StockTakingPageState extends State<StockTakingPage> {
                                 children: [
                                   Container(
                                     child: snapshot.data.length > 0 ? Center(
-                                      child: SingleChildScrollView(
                                         child: Column(
                                           mainAxisAlignment: MainAxisAlignment.center,
                                           children: <Widget> [
@@ -73,129 +73,128 @@ class _StockTakingPageState extends State<StockTakingPage> {
                                             Text(snapshot.data[0].display, textAlign: TextAlign.center, style: TextStyle(fontSize: 15),),
                                             // CaptureFormData( headerText: drugWithGivenBarCode.display, formFields: formFields)
                                             Container(
-                                              child: SingleChildScrollView(
-                                                child: Column(
-                                                  mainAxisAlignment: MainAxisAlignment.center,
-                                                  children: [
-                                                    SizedBox(
-                                                      height: 30,
-                                                    ),
-                                                    Padding(
-                                                      //padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 0),
-                                                      padding: EdgeInsets.symmetric(horizontal: 50, vertical: 10),
-                                                      child: TextField(
-                                                        controller: batchNoController,
-                                                        keyboardType: TextInputType.text,
-                                                        decoration: InputDecoration(
-                                                            border: OutlineInputBorder(),
-                                                            labelText: 'Batch',
-                                                            hintText: 'Enter batch No'),
-                                                        maxLines: 1,
+                                                child: SingleChildScrollView(
+                                                  child: Column(
+                                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                    children: [
+                                                      SizedBox(
+                                                        height: 30,
                                                       ),
-                                                    ),
-                                                    Padding(
-                                                      //padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 0),
-                                                      padding: EdgeInsets.symmetric(horizontal: 50, vertical: 10),
-                                                      child: TextField(
-                                                          controller: quantityController,
+                                                      Padding(
+                                                        //padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 0),
+                                                        padding: EdgeInsets.symmetric(horizontal: 50, vertical: 10),
+                                                        child: TextField(
+                                                          controller: batchNoController,
+                                                          keyboardType: TextInputType.text,
+                                                          decoration: InputDecoration(
+                                                              border: OutlineInputBorder(),
+                                                              labelText: 'Batch',
+                                                              hintText: 'Enter batch No'),
+                                                          maxLines: 1,
+                                                        ),
+                                                      ),
+                                                      Padding(
+                                                        //padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 0),
+                                                        padding: EdgeInsets.symmetric(horizontal: 50, vertical: 10),
+                                                        child: TextField(
+                                                            controller: quantityController,
+                                                            keyboardType: TextInputType.number,
+                                                            inputFormatters: [
+                                                              FilteringTextInputFormatter.digitsOnly,
+                                                            ],
+                                                            decoration: InputDecoration(
+                                                            border: OutlineInputBorder(),
+                                                            labelText: 'Qauntity',
+                                                            hintText: 'Enter quantity'),
+                                                            maxLines: 1,
+                                                        ),
+                                                      ),
+                                                      Padding(
+                                                        //padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 0),
+                                                        padding: EdgeInsets.symmetric(horizontal: 50),
+                                                        child: Column(
+                                                          children: [
+                                                            TextField(
+                                                              readOnly: true,
+                                                              controller: expiryDateController,
+                                                              decoration: InputDecoration(
+                                                                  border: OutlineInputBorder(),
+                                                                  labelText: 'Expiry date',
+                                                                  hintText: 'Enter expiry date',
+                                                                  suffixIcon: IconButton(
+                                                                    onPressed: () {
+                                                                      setState(() {
+                                                                        datePickerSet = !this.datePickerSet;
+                                                                      });
+                                                                    },
+                                                                    icon: Icon(Icons.date_range_outlined),
+                                                                  ),
+                                                              ),
+                                                              maxLines: 1,
+                                                            ),
+                                                            datePickerSet ? Padding(
+                                                              //padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 0),
+                                                                padding: EdgeInsets.symmetric(horizontal: 50),
+                                                                child: Container(
+                                                                  child: SfDateRangePicker(
+                                                                    onSelectionChanged: _onDateSelectionChanged,
+                                                                  ),
+                                                                )
+                                                            ): Text(''),
+                                                          ],
+                                                        )
+                                                      ),
+                                                      Padding(
+                                                        //padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 0),
+                                                        padding: EdgeInsets.symmetric(horizontal: 50, vertical: 10),
+                                                        child: TextField(
+                                                          controller: buyingPriceController,
                                                           keyboardType: TextInputType.number,
                                                           inputFormatters: [
                                                             FilteringTextInputFormatter.digitsOnly,
                                                           ],
                                                           decoration: InputDecoration(
-                                                          border: OutlineInputBorder(),
-                                                          labelText: 'Qauntity',
-                                                          hintText: 'Enter quantity'),
+                                                              border: OutlineInputBorder(),
+                                                              labelText: 'Buying price',
+                                                              hintText: 'Enter buying price'),
                                                           maxLines: 1,
-                                                      ),
-                                                    ),
-                                                    Padding(
-                                                      //padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 0),
-                                                      padding: EdgeInsets.symmetric(horizontal: 50),
-                                                      child: Column(
-                                                        children: [
-                                                          TextField(
-                                                            readOnly: true,
-                                                            controller: expiryDateController,
-                                                            decoration: InputDecoration(
-                                                                border: OutlineInputBorder(),
-                                                                labelText: 'Expiry date',
-                                                                hintText: 'Enter expiry date',
-                                                                suffixIcon: IconButton(
-                                                                  onPressed: () {
-                                                                    setState(() {
-                                                                      datePickerSet = !this.datePickerSet;
-                                                                    });
-                                                                  },
-                                                                  icon: Icon(Icons.date_range_outlined),
-                                                                ),
-                                                            ),
-                                                            maxLines: 1,
-                                                          ),
-                                                          datePickerSet ? Padding(
-                                                            //padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 0),
-                                                              padding: EdgeInsets.symmetric(horizontal: 50),
-                                                              child: Container(
-                                                                child: SfDateRangePicker(
-                                                                  onSelectionChanged: _onDateSelectionChanged,
-                                                                ),
-                                                              )
-                                                          ): Text(''),
-                                                        ],
-                                                      )
-                                                    ),
-                                                    Padding(
-                                                      //padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 0),
-                                                      padding: EdgeInsets.symmetric(horizontal: 50, vertical: 10),
-                                                      child: TextField(
-                                                        controller: buyingPriceController,
-                                                        keyboardType: TextInputType.number,
-                                                        inputFormatters: [
-                                                          FilteringTextInputFormatter.digitsOnly,
-                                                        ],
-                                                        decoration: InputDecoration(
-                                                            border: OutlineInputBorder(),
-                                                            labelText: 'Buying price',
-                                                            hintText: 'Enter buying price'),
-                                                        maxLines: 1,
-                                                      ),
-                                                    ),
-                                                    Padding(
-                                                      //padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 0),
-                                                      padding: EdgeInsets.symmetric(horizontal: 50, vertical: 10),
-                                                      child: TextField(
-                                                        controller: remarksController,
-                                                        keyboardType: TextInputType.text,
-                                                        decoration: InputDecoration(
-                                                            border: OutlineInputBorder(),
-                                                            labelText: 'Remarks',
-                                                            hintText: 'Enter remarks'),
-                                                        maxLines: 1,
-                                                      ),
-                                                    ),
-                                                    Padding(
-                                                      padding:  EdgeInsets.symmetric(horizontal: 50, vertical: 10),
-                                                      child: TextButton(
-                                                        onPressed: () {
-                                                          onSave(snapshot.data[0].uuid, batchNoController.text, quantityController.text, expiryDateController.text, buyingPriceController.text, remarksController.text);
-                                                        },
-                                                        child: Text(
-                                                          'Save',
-                                                          style: TextStyle(color: Colors.blue, fontSize: 15),
                                                         ),
                                                       ),
-                                                    ),
-                                                    Padding(
-                                                      padding: EdgeInsets.symmetric(horizontal: 50),
-                                                      child: savingStock ? CircularProgressLoader(''): Text(''),
-                                                    )
-                                                  ],
+                                                      Padding(
+                                                        //padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 0),
+                                                        padding: EdgeInsets.symmetric(horizontal: 50, vertical: 10),
+                                                        child: TextField(
+                                                          controller: remarksController,
+                                                          keyboardType: TextInputType.text,
+                                                          decoration: InputDecoration(
+                                                              border: OutlineInputBorder(),
+                                                              labelText: 'Remarks',
+                                                              hintText: 'Enter remarks'),
+                                                          maxLines: 1,
+                                                        ),
+                                                      ),
+                                                      Padding(
+                                                        padding:  EdgeInsets.symmetric(horizontal: 50, vertical: 10),
+                                                        child: TextButton(
+                                                          onPressed: () {
+                                                            onSave(snapshot.data[0].concept['uuid'], batchNoController.text, quantityController.text, expiryDateController.text, buyingPriceController.text, remarksController.text);
+                                                          },
+                                                          child: Text(
+                                                            'Save',
+                                                            style: TextStyle(color: Colors.blue, fontSize: 15),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      Padding(
+                                                        padding: EdgeInsets.symmetric(horizontal: 50),
+                                                        child: savingStock ? CircularProgressLoader(''): Text(''),
+                                                      )
+                                                    ],
+                                                  ),
                                                 ),
-                                              ),
                                             )
                                           ],
                                         ),
-                                      ),
                                     ):
                                     SearchFromOnlineDropDown(searchingText: 'paracetamol', basicAuthToken:widget.authToken, baseUrl: widget.baseUrl, getSelectedItem: (data) => {
                                       setState(() => {
@@ -239,40 +238,34 @@ class _StockTakingPageState extends State<StockTakingPage> {
     setState(() {
       this.savingStock = true;
     });
-
     final dynamic itemResponse = await getBillableItemUsingConceptUuid(widget.baseUrl, widget.authToken, conceptUuid);
-    print(itemResponse);
-    // if (itemResponse['statusCode'] == 200) {
-    //   Map<String, Object> data = {
-    //     'batchNo': batchNo,
-    //     'item': {
-    //       'uuid': ""
-    //     },
-    //     'expiryDate': expiryDate + "T00:00:00.000Z",
-    //     'remarks': remarks,
-    //     'ledgerType': {
-    //       'uuid': '06d7195f-1779-4964-b6a8-393b8152956a'
-    //     },
-    //     'location': {
-    //       'uuid': '4187da6a-262f-45cf-abf1-a98ae80d0b8b'
-    //     },
-    //     'buyingPrice': int.parse(buyingPrice),
-    //     'quantity': int.parse(quantity)
-    //   };
-    //
-    //   // print("########################################################################");
-    //   print(data);
-    //   // print("########################################################################");
-    //
-    //   final Map<String, Object> response = await saveStock(widget.baseUrl, widget.authToken, data);
-    //   // print(response);
-    //   if (response['statusCode'] == 200) {
-    //     print("NDANI");
-    //     setState(() {
-    //       this.savingStock = false;
-    //     });
-    //   }
-    // }
+    if (itemResponse['uuid'] != null) {
+      Map<String, Object> data = {
+        'batchNo': batchNo,
+        'item': {
+          'uuid': itemResponse['uuid']
+        },
+        'expiryDate': expiryDate + "T00:00:00.000Z",
+        'remarks': remarks,
+        'ledgerType': {
+          'uuid': '06d7195f-1779-4964-b6a8-393b8152956a'
+        },
+        'location': {
+          'uuid': '4187da6a-262f-45cf-abf1-a98ae80d0b8b'
+        },
+        'buyingPrice': int.parse(buyingPrice),
+        'quantity': int.parse(quantity)
+      };
+
+      final Map<String, Object> response = await saveStock(widget.baseUrl, widget.authToken, data);
+      print(response);
+      if (response['item'] != null) {
+        print("NDANI");
+        setState(() {
+          this.savingStock = false;
+        });
+      }
+    }
 
   }
 }

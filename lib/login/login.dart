@@ -51,18 +51,18 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             children: <Widget>[
               Padding(
-                padding: const EdgeInsets.only(top: 60.0),
+                padding: const EdgeInsets.only(top: 180.0),
                 child: Center(
                   child: Container(
                       width: 200,
-                      height: 200,
-                      child: Text('TESTING'),
+                      height: 100,
+                      child: Text('iCare Stock Taking', textAlign: TextAlign.center, style: TextStyle(fontSize: 20),),
                   ),
                 ),
               ),
               Padding(
                 //padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 0),
-                padding: EdgeInsets.symmetric(horizontal: 15),
+                padding: EdgeInsets.symmetric(horizontal: 60),
                 child: TextField(
                   controller: addressController,
                   decoration: InputDecoration(
@@ -74,7 +74,7 @@ class _LoginPageState extends State<LoginPage> {
               Padding(
                 //padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 0),
                 padding: const EdgeInsets.only(
-                    left: 15.0, right: 15.0, top: 15, bottom: 0),
+                    left: 60, right: 60, top: 15, bottom: 0),
                 child: TextField(
                   controller: usernameController,
                   decoration: InputDecoration(
@@ -85,7 +85,7 @@ class _LoginPageState extends State<LoginPage> {
               ),
               Padding(
                 padding: const EdgeInsets.only(
-                    left: 15.0, right: 15.0, top: 15, bottom: 0),
+                    left: 60, right: 60, top: 15, bottom: 0),
                 //padding: EdgeInsets.symmetric(horizontal: 15),
                 child: TextField(
                   obscureText: true,
@@ -108,7 +108,7 @@ class _LoginPageState extends State<LoginPage> {
               ),
               Container(
                 height: 50,
-                width: 250,
+                width: 200,
                 decoration: BoxDecoration(
                     color: Colors.blue, borderRadius: BorderRadius.circular(20)),
                 child: FlatButton(
