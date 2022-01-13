@@ -175,20 +175,20 @@ class _StockTakingPageState extends State<StockTakingPage> {
                                                       ),
                                                       Padding(
                                                         padding:  EdgeInsets.symmetric(horizontal: 50, vertical: 10),
-                                                        child: TextButton(
-                                                          onPressed: () {
-                                                            onSave(snapshot.data[0].concept['uuid'], batchNoController.text, quantityController.text, expiryDateController.text, buyingPriceController.text, remarksController.text);
-                                                          },
-                                                          child: Text(
-                                                            'Save',
-                                                            style: TextStyle(color: Colors.blue, fontSize: 15),
+                                                        child: Container(
+                                                          width: 200,
+                                                          height: 50,
+                                                          child: ElevatedButton(
+                                                            onPressed: () {
+                                                              onSave(snapshot.data[0].concept['uuid'], batchNoController.text, quantityController.text, expiryDateController.text, buyingPriceController.text, remarksController.text);
+                                                            },
+                                                            child: savingStock ? CircularProgressLoader('Saving data') : Text(
+                                                              'Save',
+                                                              style: TextStyle(color: Colors.white, fontSize: 18,),
+                                                            ),
                                                           ),
                                                         ),
                                                       ),
-                                                      Padding(
-                                                        padding: EdgeInsets.symmetric(horizontal: 50),
-                                                        child: savingStock ? CircularProgressLoader(''): Text(''),
-                                                      )
                                                     ],
                                                   ),
                                                 ),
@@ -263,6 +263,10 @@ class _StockTakingPageState extends State<StockTakingPage> {
         print("NDANI");
         setState(() {
           this.savingStock = false;
+          quantityController.value =  quantityController.value.copyWith(text: '',);
+          expiryDateController.value =  expiryDateController.value.copyWith(text: '',);
+          buyingPriceController.value =  buyingPriceController.value.copyWith(text: '',);
+          remarksController.value =  remarksController.value.copyWith(text: '',);
         });
       }
     }
