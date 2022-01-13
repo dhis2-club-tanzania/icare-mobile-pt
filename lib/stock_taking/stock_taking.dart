@@ -1,5 +1,6 @@
 
 import 'dart:async';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:icaremobile/shared/loaders.dart';
@@ -24,6 +25,7 @@ class _StockTakingPageState extends State<StockTakingPage> {
   DataModel selectedItem =DataModel(uuid: '', display: '');
   bool datePickerSet = false;
   String selectedDate = '';
+  bool areSomeFieldsMissing = false;
   dynamic drugReferenceTerm = {
     'code': '',
     'conceptSource': ''
@@ -85,6 +87,7 @@ class _StockTakingPageState extends State<StockTakingPage> {
                                                         padding: EdgeInsets.symmetric(horizontal: 50, vertical: 10),
                                                         child: TextField(
                                                           controller: batchNoController,
+                                                          onTap: updateFormStatus,
                                                           keyboardType: TextInputType.text,
                                                           decoration: InputDecoration(
                                                               border: OutlineInputBorder(),
@@ -98,6 +101,9 @@ class _StockTakingPageState extends State<StockTakingPage> {
                                                         padding: EdgeInsets.symmetric(horizontal: 50, vertical: 10),
                                                         child: TextField(
                                                             controller: quantityController,
+                                                            onChanged: (event) {
+                                                              updateFormStatus();
+                                                            },
                                                             keyboardType: TextInputType.number,
                                                             inputFormatters: [
                                                               FilteringTextInputFormatter.digitsOnly,
@@ -117,6 +123,9 @@ class _StockTakingPageState extends State<StockTakingPage> {
                                                             TextField(
                                                               readOnly: true,
                                                               controller: expiryDateController,
+                                                              onChanged: (event) {
+                                                                updateFormStatus();
+                                                              },
                                                               decoration: InputDecoration(
                                                                   border: OutlineInputBorder(),
                                                                   labelText: 'Expiry date',
@@ -124,7 +133,7 @@ class _StockTakingPageState extends State<StockTakingPage> {
                                                                   suffixIcon: IconButton(
                                                                     onPressed: () {
                                                                       setState(() {
-                                                                        datePickerSet = !this.datePickerSet;
+                                                                        datePickerSet = !datePickerSet;
                                                                       });
                                                                     },
                                                                     icon: Icon(Icons.date_range_outlined),
@@ -149,6 +158,9 @@ class _StockTakingPageState extends State<StockTakingPage> {
                                                         padding: EdgeInsets.symmetric(horizontal: 50, vertical: 10),
                                                         child: TextField(
                                                           controller: buyingPriceController,
+                                                          onChanged: (event) {
+                                                            updateFormStatus();
+                                                          },
                                                           keyboardType: TextInputType.number,
                                                           inputFormatters: [
                                                             FilteringTextInputFormatter.digitsOnly,
@@ -189,6 +201,10 @@ class _StockTakingPageState extends State<StockTakingPage> {
                                                           ),
                                                         ),
                                                       ),
+                                                      areSomeFieldsMissing ? Padding(
+                                                        padding: EdgeInsets.symmetric(horizontal: 50),
+                                                        child: Text('Some fields are not set', textAlign: TextAlign.center, style: TextStyle(color: Colors.red),),
+                                                      ): Text('')
                                                     ],
                                                   ),
                                                 ),
@@ -226,51 +242,64 @@ class _StockTakingPageState extends State<StockTakingPage> {
     );
   }
 
+  void updateFormStatus() {
+    if (quantityController.text != '' && batchNoController.text != '' && expiryDateController.text != '' && buyingPriceController.text != '') {
+      setState(() {
+        areSomeFieldsMissing = false;
+      });
+    }
+  }
+
   void _onDateSelectionChanged(DateRangePickerSelectionChangedArgs selections) {
-    this.expiryDateController.value = expiryDateController.value.copyWith(text: selections.value.toString().substring(0,10),);
+    expiryDateController.value = expiryDateController.value.copyWith(text: selections.value.toString().substring(0,10),);
     print(selections.value);
     setState(() {
-      this.datePickerSet = !this.datePickerSet;
+      datePickerSet = !datePickerSet;
     });
   }
 
   void onSave(conceptUuid, batchNo, quantity, expiryDate, buyingPrice, remarks) async {
-    setState(() {
-      this.savingStock = true;
-    });
-    final dynamic itemResponse = await getBillableItemUsingConceptUuid(widget.baseUrl, widget.authToken, conceptUuid);
-    if (itemResponse['uuid'] != null) {
-      Map<String, Object> data = {
-        'batchNo': batchNo,
-        'item': {
-          'uuid': itemResponse['uuid']
-        },
-        'expiryDate': expiryDate + "T00:00:00.000Z",
-        'remarks': remarks,
-        'ledgerType': {
-          'uuid': '06d7195f-1779-4964-b6a8-393b8152956a'
-        },
-        'location': {
-          'uuid': '4187da6a-262f-45cf-abf1-a98ae80d0b8b'
-        },
-        'buyingPrice': int.parse(buyingPrice),
-        'quantity': int.parse(quantity)
-      };
+    if (batchNo == '' || quantity == '' || expiryDate == '' || buyingPrice == '') {
+      setState(() {
+        areSomeFieldsMissing = true;
+      });
+    } else {
+      setState(() {
+        areSomeFieldsMissing = false;
+        savingStock = true;
+      });
+      final dynamic itemResponse = await getBillableItemUsingConceptUuid(widget.baseUrl, widget.authToken, conceptUuid);
+      if (itemResponse['uuid'] != null) {
+        Map<String, Object> data = {
+          'batchNo': batchNo,
+          'item': {
+            'uuid': itemResponse['uuid']
+          },
+          'expiryDate': expiryDate + "T00:00:00.000Z",
+          'remarks': remarks,
+          'ledgerType': {
+            'uuid': '06d7195f-1779-4964-b6a8-393b8152956a'
+          },
+          'location': {
+            'uuid': '4187da6a-262f-45cf-abf1-a98ae80d0b8b'
+          },
+          'buyingPrice': int.parse(buyingPrice),
+          'quantity': int.parse(quantity)
+        };
 
-      final Map<String, Object> response = await saveStock(widget.baseUrl, widget.authToken, data);
-      print(response);
-      if (response['item'] != null) {
-        print("NDANI");
-        setState(() {
-          this.savingStock = false;
-          quantityController.value =  quantityController.value.copyWith(text: '',);
-          expiryDateController.value =  expiryDateController.value.copyWith(text: '',);
-          buyingPriceController.value =  buyingPriceController.value.copyWith(text: '',);
-          remarksController.value =  remarksController.value.copyWith(text: '',);
-        });
+        final Map<String, Object> response = await saveStock(widget.baseUrl, widget.authToken, data);
+        print(response);
+        if (response['item'] != null) {
+          setState(() {
+            savingStock = false;
+            quantityController.value =  quantityController.value.copyWith(text: '',);
+            expiryDateController.value =  expiryDateController.value.copyWith(text: '',);
+            buyingPriceController.value =  buyingPriceController.value.copyWith(text: '',);
+            remarksController.value =  remarksController.value.copyWith(text: '',);
+          });
+        }
       }
     }
-
   }
 }
 
