@@ -72,7 +72,7 @@ class _StockTakingPageState extends State<StockTakingPage> {
                                           mainAxisAlignment: MainAxisAlignment.center,
                                           children: <Widget> [
                                             SizedBox(
-                                              height: 10,
+                                              height: 20,
                                             ),
                                             Text(widget.locationDetails.display, textAlign: TextAlign.center, style: TextStyle(fontSize: 22)),
                                             SizedBox(
