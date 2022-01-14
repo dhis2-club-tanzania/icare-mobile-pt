@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert' as convert;
 import 'package:http/http.dart' as http;
 import 'package:icaremobile/home/home.dart';
+import 'package:icaremobile/shared/locations.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -31,8 +32,9 @@ class _LoginPageState extends State<LoginPage> {
       setState((){
         failedToLogin = false;
       });
+      final locationResponse = await getStoreLocations(basicAuth, address, responseMap);
       Navigator.push(
-          context, MaterialPageRoute(builder: (_) => HomePage(authToken: basicAuth, baseUrl: address, userInfo: responseMap ))
+          context, MaterialPageRoute(builder: (_) => HomePage(authToken: basicAuth, baseUrl: address, userInfo: responseMap, storeLocations: locationResponse ))
       );
       // return responseMap;
     } else {

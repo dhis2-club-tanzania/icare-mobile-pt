@@ -8,7 +8,7 @@ import 'package:icaremobile/models/location.model.dart';
 Future <List<LocationModel>> getStoreLocations(basicAuthToken, baseUrl, userInfo) async {
   if (userInfo != '') {
     final dynamic response = await http.get(
-      baseUrl + '/openmrs/ws/rest/v1/location?tag=store&v=custom:(uuid,display,name,tags)',headers: <String, String>{'Authorization': basicAuthToken},
+      baseUrl + '/openmrs/ws/rest/v1/location?tag=Main+Store&v=custom:(uuid,display,name,tags)',headers: <String, String>{'Authorization': basicAuthToken},
     );
     if (response.statusCode == 200) {
       final Map<dynamic, dynamic> responseMap = json.decode(response.body);

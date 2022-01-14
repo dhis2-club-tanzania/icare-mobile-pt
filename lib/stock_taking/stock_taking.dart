@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:icaremobile/models/location.model.dart';
 import 'package:icaremobile/shared/loaders.dart';
 import '/shared/drug_service.dart';
 import '/models/drug_response_model.dart';
@@ -44,11 +45,12 @@ class _StockTakingPageState extends State<StockTakingPage> {
   }
 
   String ledgerType = '06d7195f-1779-4964-b6a8-393b8152956a';
-  String location = '4187da6a-262f-45cf-abf1-a98ae80d0b8b';
+  String location = '';
   bool savingStock = false;
 
   @override
   Widget build(BuildContext context) {
+    location = widget.locationDetails.uuid;
     return Scaffold(
       resizeToAvoidBottomInset: true,
       body: Container(
@@ -69,6 +71,10 @@ class _StockTakingPageState extends State<StockTakingPage> {
                                         child: Column(
                                           mainAxisAlignment: MainAxisAlignment.center,
                                           children: <Widget> [
+                                            SizedBox(
+                                              height: 10,
+                                            ),
+                                            Text(widget.locationDetails.display, textAlign: TextAlign.center, style: TextStyle(fontSize: 22)),
                                             SizedBox(
                                               height: 10,
                                             ),
@@ -281,7 +287,7 @@ class _StockTakingPageState extends State<StockTakingPage> {
             'uuid': '06d7195f-1779-4964-b6a8-393b8152956a'
           },
           'location': {
-            'uuid': '4187da6a-262f-45cf-abf1-a98ae80d0b8b'
+            'uuid': location
           },
           'buyingPrice': int.parse(buyingPrice),
           'quantity': int.parse(quantity)
