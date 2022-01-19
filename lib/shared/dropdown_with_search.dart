@@ -18,7 +18,7 @@ class SearchFromOnlineDropDown extends StatelessWidget {
           mode: Mode.MENU,
           isFilteredOnline: true,
           showClearButton: true,
-          maxHeight: 500,
+          maxHeight: 350,
           showSearchBox: true,
           dropdownSearchDecoration: InputDecoration(
             hintText: "Search a drug",

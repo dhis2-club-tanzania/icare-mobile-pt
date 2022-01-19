@@ -31,3 +31,35 @@ class CircularProgressLoader extends StatelessWidget {
     );
   }
 }
+
+
+class LinearProgressLoader extends StatelessWidget {
+  LinearProgressLoader(this.loadingText, {Key? key}) : super(key: key);
+  final String loadingText;
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(
+            child: LinearProgressIndicator(
+              backgroundColor: Colors.white,
+              valueColor: AlwaysStoppedAnimation(Colors.blue),
+            ),
+            height: 15.0,
+            width: 15.0,
+          ),
+          SizedBox(
+            height: 15.0,
+            width: 15.0,
+          ),
+          Text(loadingText, style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),)
+        ],
+      ),
+    );
+  }
+}
