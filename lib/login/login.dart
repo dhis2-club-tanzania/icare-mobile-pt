@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert' as convert;
 import 'package:http/http.dart' as http;
 import 'package:icaremobile/home/home.dart';
+import 'package:icaremobile/shared/loaders.dart';
 import 'package:icaremobile/shared/locations.dart';
 
 class LoginPage extends StatefulWidget {
@@ -19,17 +20,22 @@ class _LoginPageState extends State<LoginPage> {
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();
   bool failedToLogin = false;
+  bool authenticating = false;
   String createBasicAuthToken(username, password) {
     return 'Basic ' + convert.base64Encode(utf8.encode('$username:$password'));
   }
 
   login(String basicAuth, String address) async {
+    setState(() {
+      authenticating = true;
+    });
     final response = await http.get(
       address + '/openmrs/ws/rest/v1/session?v=custom:(authenticated,user:(privileges:(uuid,name,roles),roles:(uuid,name),userProperties))',headers: <String, String>{'Authorization': basicAuth},
     );
     Map<String, dynamic> responseMap = json.decode(response.body);
     if (responseMap['authenticated']) {
       setState((){
+        authenticating = false;
         failedToLogin = false;
       });
       final locationResponse = await getStoreLocations(basicAuth, address, responseMap);
@@ -39,6 +45,7 @@ class _LoginPageState extends State<LoginPage> {
       // return responseMap;
     } else {
       setState((){
+        authenticating = false;
         failedToLogin = true;
       });
     }
@@ -46,7 +53,7 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    addressController.value = addressController.value.copyWith(text: 'https://icare.dhis2udsm.org',);
+    addressController.value = addressController.value.copyWith(text: 'http://icare.dhis2.udsm.ac.tz',);
     return Scaffold(
         backgroundColor: Colors.white,
         body: SingleChildScrollView(
@@ -118,10 +125,11 @@ class _LoginPageState extends State<LoginPage> {
                     var basicAuthToken = createBasicAuthToken(usernameController.text, passwordController.text);
                     login(basicAuthToken, addressController.text);
                   },
-                  child: Text(
+                  child: !authenticating ? Text(
                     'Login',
                     style: TextStyle(color: Colors.white, fontSize: 25),
-                  ),
+                  ):
+                  CircularProgressLoader('Logging in'),
                 ),
               ),
               SizedBox(

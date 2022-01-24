@@ -31,8 +31,6 @@ class _StockTakingPageState extends State<StockTakingPage> {
   };
   Future<void> _scan() async {
     String? barcode =  await FlutterBarcodeScanner.scanBarcode('#ff6666', 'Cancel', true, ScanMode.QR);
-    print('##################');
-    print(barcode);
     setState(() {
       scannedBarCode = barcode;
     });

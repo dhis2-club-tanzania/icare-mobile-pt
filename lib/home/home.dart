@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:icaremobile/models/location.model.dart';
 import 'package:icaremobile/shared/loaders.dart';
 import 'package:icaremobile/shared/locations.dart';
+import 'package:icaremobile/stock_taking/stock_status.dart';
 import '/stock_taking/stock_taking.dart';
 
 
@@ -56,7 +57,9 @@ class _HomePageState extends State<HomePage> {
           ),
           body: TabBarView(
             children: [
-              Icon(Icons.storage),
+              Container(
+                child: StockStatusPage(),
+              ),
               Container(
                 child: currentLocation.uuid != '' ? StockTakingPage(authToken: widget.authToken, baseUrl: widget.baseUrl, locationDetails: currentLocation):
                 Column(
