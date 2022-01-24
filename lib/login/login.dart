@@ -1,5 +1,7 @@
 
 import 'dart:convert';
+import 'dart:io';
+import 'package:dart_ping/dart_ping.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert' as convert;
 import 'package:http/http.dart' as http;
@@ -21,34 +23,61 @@ class _LoginPageState extends State<LoginPage> {
   final passwordController = TextEditingController();
   bool failedToLogin = false;
   bool authenticating = false;
+  bool isPhoneConnectedToInternet = false;
+  bool someParametersMissing =false;
+  bool serverNotFound = false;
+  bool pingDone = false;
   String createBasicAuthToken(username, password) {
     return 'Basic ' + convert.base64Encode(utf8.encode('$username:$password'));
   }
 
   login(String basicAuth, String address) async {
-    setState(() {
-      authenticating = true;
+    final ping = Ping(address, count: 5);
+    ping.stream.listen((event) {
+      if (event.error == 'UnknownHost') {
+        setState(() {
+          pingDone = true;
+          serverNotFound = false;
+          isPhoneConnectedToInternet = true;
+          authenticating = true;
+        });
+      } else {
+        setState(() {
+          pingDone = true;
+          serverNotFound = true;
+        });
+      }
     });
-    final response = await http.get(
-      address + '/openmrs/ws/rest/v1/session?v=custom:(authenticated,user:(privileges:(uuid,name,roles),roles:(uuid,name),userProperties))',headers: <String, String>{'Authorization': basicAuth},
-    );
-    Map<String, dynamic> responseMap = json.decode(response.body);
-    if (responseMap['authenticated']) {
-      setState((){
-        authenticating = false;
-        failedToLogin = false;
-      });
-      final locationResponse = await getStoreLocations(basicAuth, address, responseMap);
-      Navigator.push(
-          context, MaterialPageRoute(builder: (_) => HomePage(authToken: basicAuth, baseUrl: address, userInfo: responseMap, storeLocations: locationResponse ))
+    if (!serverNotFound && pingDone) {
+      final response = await http.get(
+        address + '/openmrs/ws/rest/v1/session?v=custom:(authenticated,user:(privileges:(uuid,name,roles),roles:(uuid,name),userProperties))',headers: <String, String>{'Authorization': basicAuth},
       );
-      // return responseMap;
-    } else {
-      setState((){
-        authenticating = false;
-        failedToLogin = true;
-      });
+      Map<String, dynamic> responseMap = json.decode(response.body);
+      if (responseMap['authenticated']) {
+        setState((){
+          authenticating = false;
+          failedToLogin = false;
+        });
+        final locationResponse = await getStoreLocations(basicAuth, address, responseMap);
+        Navigator.push(
+            context, MaterialPageRoute(builder: (_) => HomePage(authToken: basicAuth, baseUrl: address, userInfo: responseMap, storeLocations: locationResponse ))
+        );
+        // return responseMap;
+      } else {
+        setState((){
+          authenticating = false;
+          failedToLogin = true;
+        });
+      }
     }
+    // try {
+    //   final result = await InternetAddress.lookup(address);
+    //   if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+    //   }
+    // } on SocketException catch (_) {
+    //   isPhoneConnectedToInternet = false;
+    // }
+
   }
 
   @override
@@ -86,6 +115,8 @@ class _LoginPageState extends State<LoginPage> {
                     left: 60, right: 60, top: 15, bottom: 0),
                 child: TextField(
                   controller: usernameController,
+                  enableSuggestions: false,
+                  autocorrect: false,
                   decoration: InputDecoration(
                       border: OutlineInputBorder(),
                       labelText: 'Username',
@@ -98,6 +129,8 @@ class _LoginPageState extends State<LoginPage> {
                 //padding: EdgeInsets.symmetric(horizontal: 15),
                 child: TextField(
                   obscureText: true,
+                  enableSuggestions: false,
+                  autocorrect: false,
                   controller: passwordController,
                   decoration: InputDecoration(
                       errorText: failedToLogin ? 'Failed to login': null,
@@ -123,6 +156,9 @@ class _LoginPageState extends State<LoginPage> {
                 child: FlatButton(
                   onPressed: () {
                     var basicAuthToken = createBasicAuthToken(usernameController.text, passwordController.text);
+                    setState(() {
+                      someParametersMissing = addressController.text == '' || usernameController.text == '' || passwordController.text == '' ? true: false;
+                    });
                     login(basicAuthToken, addressController.text);
                   },
                   child: !authenticating ? Text(
@@ -132,6 +168,10 @@ class _LoginPageState extends State<LoginPage> {
                   CircularProgressLoader('Logging in'),
                 ),
               ),
+              SizedBox(
+                height: 10,
+              ),
+              serverNotFound ? Text(address + ' Not found, re-check address or contact IT'): Text(''),
               SizedBox(
                 height: 130,
               ),

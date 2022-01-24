@@ -42,6 +42,7 @@ dependencies:
   dropdown_search: ^2.0.1
   intl: ^0.16.1
   syncfusion_flutter_datepicker: ^19.4.42
+  dart_ping: ^6.1.1
 
 dev_dependencies:
   flutter_test:
