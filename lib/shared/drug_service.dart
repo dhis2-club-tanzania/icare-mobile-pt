@@ -37,6 +37,7 @@ Future <ConceptReferenceTermModel> createDrugReferenceTerm(String baseUrl, Strin
 }
 
 Future <DrugReferenceMapModel> createDrugReferenceMap(String baseUrl, String basicAuthToken, data) async {
+  print(data);
   final dynamic response = await http.post(
     baseUrl + '/openmrs/ws/rest/v1/drugreferencemap',body: jsonEncode(data), headers: <String, String>{'Authorization': basicAuthToken, 'Content-type': 'application/json;charset=utf-8'},
   );
@@ -68,6 +69,9 @@ Future <Map<String, Object>> getBillableItemUsingConceptUuid(String baseUrl, Str
 
 // STOCK STATUS
 Future <List<DropdownMenuItem<dynamic>>> getStockStatusOfTheItem(String baseUrl, String basicAuthToken, String itemUuid) async {
+  if (itemUuid == '') {
+    return [];
+  }
   final String path = baseUrl + '/openmrs/ws/rest/v1/store/item/' + itemUuid +'/stock';
   final dynamic response = await http.get(
     path,headers: <String, String>{'Authorization': basicAuthToken},
