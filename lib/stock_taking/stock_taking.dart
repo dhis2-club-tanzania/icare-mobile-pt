@@ -2,8 +2,6 @@
 import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:icaremobile/models/location.model.dart';
 import 'package:icaremobile/shared/loaders.dart';
 import 'package:icaremobile/shared/stock_data.dart';
 import '/shared/drug_service.dart';
@@ -11,7 +9,6 @@ import '/models/drug_response_model.dart';
 import '/shared/dropdown_with_search.dart';
 import '/stock_taking/qrcode_scanner.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
-import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 class StockTakingPage extends StatefulWidget {
   final String authToken;
@@ -83,7 +80,16 @@ class _StockTakingPageState extends State<StockTakingPage> {
                                   ),
                                   Text(snapshot.data[0].display, textAlign: TextAlign.center, style: TextStyle(fontSize: 15),),
                                   // CaptureFormData( headerText: drugWithGivenBarCode.display, formFields: formFields)
-                                  StockDataForm(authToken: widget.authToken,baseUrl: widget.baseUrl, conceptUuid: snapshot.data[0].concept['uuid'], locationUuid: widget.locationDetails.uuid,),
+                                  Container(
+                                    child: FutureBuilder(
+                                      future: getBillableItemUsingConceptUuid(widget.baseUrl, widget.authToken, snapshot.data[0].concept['uuid']),
+                                      builder: (BuildContext context, AsyncSnapshot snapShotData) {
+                                        return snapShotData.hasData ?
+                                        StockDataForm(authToken: widget.authToken,baseUrl: widget.baseUrl, conceptUuid: snapshot.data[0].concept['uuid'], locationUuid: widget.locationDetails.uuid, itemUuid: snapShotData.data['uuid']):
+                                        Text('');
+                                      },
+                                    ),
+                                  ),
                                 ],
                               ),
                             ):
@@ -102,7 +108,7 @@ class _StockTakingPageState extends State<StockTakingPage> {
                                     future: createDrugReferenceMap(widget.baseUrl, widget.authToken, {'drug': {'uuid': selectedItem.uuid}, 'conceptMapType':'SAME-AS', 'conceptReferenceTerm': createdReferenceTerm.uuid}),
                                     builder: (BuildContext context, AsyncSnapshot snapshot) {
                                       return snapshot.hasData ?
-                                      StockDataForm(authToken: widget.authToken,baseUrl: widget.baseUrl, conceptUuid: selectedItem.concept['uuid'], locationUuid: widget.locationDetails.uuid,)
+                                      StockDataForm(authToken: widget.authToken,baseUrl: widget.baseUrl, conceptUuid: selectedItem.concept['uuid'], locationUuid: widget.locationDetails.uuid, itemUuid: '',)
                                           : LinearProgressLoader('Saving reference map..');
                                     })
                                     : LinearProgressLoader('Loading..');

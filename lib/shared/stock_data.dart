@@ -1,6 +1,7 @@
 
 
 
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:icaremobile/shared/drug_service.dart';
@@ -12,7 +13,8 @@ class StockDataForm extends StatefulWidget {
   final String baseUrl;
   final String conceptUuid;
   final String locationUuid;
-  StockDataForm({Key? key, required this.authToken, required this.baseUrl, required this.conceptUuid, required this.locationUuid}) : super(key: key);
+  final String itemUuid;
+  StockDataForm({Key? key, required this.authToken, required this.baseUrl, required this.conceptUuid, required this.locationUuid, required this.itemUuid}) : super(key: key);
   @override
   _StockDataFormState createState() => _StockDataFormState();
 }
@@ -27,142 +29,183 @@ class _StockDataFormState extends State<StockDataForm> {
   bool datePickerSet = false;
   bool savingStock = false;
   String selectedDate = '';
+  dynamic dropDownValue;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       child: SingleChildScrollView(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SizedBox(
-              height: 30,
-            ),
-            Padding(
-              //padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 0),
-              padding: EdgeInsets.symmetric(horizontal: 50, vertical: 10),
-              child: TextField(
-                controller: batchNoController,
-                onTap: updateFormStatus,
-                keyboardType: TextInputType.text,
-                decoration: InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: 'Batch',
-                    hintText: 'Enter batch No'),
-                maxLines: 1,
-              ),
-            ),
-            Padding(
-              //padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 0),
-              padding: EdgeInsets.symmetric(horizontal: 50, vertical: 10),
-              child: TextField(
-                controller: quantityController,
-                onChanged: (event) {
-                  updateFormStatus();
-                },
-                keyboardType: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                ],
-                decoration: InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: 'Qauntity',
-                    hintText: 'Enter quantity'),
-                maxLines: 1,
-              ),
-            ),
-            Padding(
-              //padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 0),
-                padding: EdgeInsets.symmetric(horizontal: 50),
-                child: Column(
-                  children: [
-                    TextField(
-                      readOnly: true,
-                      controller: expiryDateController,
-                      onChanged: (event) {
-                        updateFormStatus();
-                      },
+        child: FutureBuilder(
+          future: getStockStatusOfTheItem(widget.baseUrl, widget.authToken, widget.itemUuid),
+          builder: (BuildContext context, AsyncSnapshot snapShot) {
+            // print('111111111111111#########################################################');
+            // print(snapShot.hasData);
+            return  snapShot.hasData ?
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  height: 30,
+                ),
+                snapShot.data.length > 0 ?  Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                  child: DropdownButtonFormField(
+                      isExpanded: true,
+                      // overflow: TextOverflow.ellipsis,
                       decoration: InputDecoration(
-                        border: OutlineInputBorder(),
-                        labelText: 'Expiry date',
-                        hintText: 'Enter expiry date',
-                        suffixIcon: IconButton(
-                          onPressed: () {
-                            setState(() {
-                              datePickerSet = !datePickerSet;
-                            });
-                          },
-                          icon: Icon(Icons.date_range_outlined),
-                        ),
+                      border: OutlineInputBorder(),
+                      errorText:  null,
+                      enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.grey),
                       ),
-                      maxLines: 1,
+                      ),
+                      value: dropDownValue,
+                      validator: (value) => value == null ? 'field required' : null,
+                      items: snapShot.data,
+                      onChanged: (dynamic value) {
+                        final jsonEquivalent =json.decode(value.toString());
+                        setState(() {
+                          batchNoController.value = batchNoController.value.copyWith(text: (jsonEquivalent['batch']),);
+                          buyingPriceController.value = buyingPriceController.value.copyWith(text: '0',);
+                          expiryDateController.value = expiryDateController.value.copyWith(text: DateTime.fromMillisecondsSinceEpoch((jsonEquivalent['expiryDate'])).toString());
+                        });
+                      },
+                  hint: Text('Choose Batch', overflow: TextOverflow.ellipsis),
+                  disabledHint: Text("Disabled"),
+                  elevation: 8,
+                  ),
+                ): Text('No stock exist for this drug'),
+                ((snapShot.data.length > 0 && batchNoController.text != '') || snapShot.data.length  == 0) ?  Column(
+                  children: [
+                    Padding(
+                      //padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 0),
+                      padding: EdgeInsets.symmetric(horizontal: 50, vertical: 10),
+                      child: TextField(
+                        controller: batchNoController,
+                        onTap: updateFormStatus,
+                        keyboardType: TextInputType.text,
+                        decoration: InputDecoration(
+                            border: OutlineInputBorder(),
+                            labelText: 'Batch',
+                            hintText: 'Enter batch No'),
+                        maxLines: 1,
+                      ),
                     ),
-                    datePickerSet ? Padding(
+                    Padding(
                       //padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 0),
                         padding: EdgeInsets.symmetric(horizontal: 50),
-                        child: Container(
-                          child: SfDateRangePicker(
-                            onSelectionChanged: _onDateSelectionChanged,
-                          ),
+                        child: Column(
+                          children: [
+                            TextField(
+                              readOnly: true,
+                              controller: expiryDateController,
+                              onChanged: (event) {
+                                updateFormStatus();
+                              },
+                              decoration: InputDecoration(
+                                border: OutlineInputBorder(),
+                                labelText: 'Expiry date',
+                                hintText: 'Enter expiry date',
+                                suffixIcon: IconButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      datePickerSet = !datePickerSet;
+                                    });
+                                  },
+                                  icon: Icon(Icons.date_range_outlined),
+                                ),
+                              ),
+                              maxLines: 1,
+                            ),
+                            datePickerSet ? Padding(
+                              //padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 0),
+                                padding: EdgeInsets.symmetric(horizontal: 50),
+                                child: Container(
+                                  child: SfDateRangePicker(
+                                    onSelectionChanged: _onDateSelectionChanged,
+                                  ),
+                                )
+                            ): Text(''),
+                          ],
                         )
-                    ): Text(''),
+                    ),
+                    Padding(
+                      //padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 0),
+                      padding: EdgeInsets.symmetric(horizontal: 50, vertical: 10),
+                      child: TextField(
+                        controller: buyingPriceController,
+                        onChanged: (event) {
+                          updateFormStatus();
+                        },
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        decoration: InputDecoration(
+                            border: OutlineInputBorder(),
+                            labelText: 'Buying price',
+                            hintText: 'Enter buying price'),
+                        maxLines: 1,
+                      ),
+                    ),
+                    Padding(
+                      //padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 0),
+                      padding: EdgeInsets.symmetric(horizontal: 50, vertical: 10),
+                      child: TextField(
+                        controller: quantityController,
+                        onChanged: (event) {
+                          updateFormStatus();
+                        },
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        decoration: InputDecoration(
+                            border: OutlineInputBorder(),
+                            labelText: 'Qauntity',
+                            hintText: 'Enter quantity'),
+                        maxLines: 1,
+                      ),
+                    ),
+                    Padding(
+                      //padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 0),
+                      padding: EdgeInsets.symmetric(horizontal: 50, vertical: 10),
+                      child: TextField(
+                        controller: remarksController,
+                        keyboardType: TextInputType.text,
+                        decoration: InputDecoration(
+                            border: OutlineInputBorder(),
+                            labelText: 'Remarks',
+                            hintText: 'Enter remarks'),
+                        maxLines: 1,
+                      ),
+                    ),
+                    Padding(
+                      padding:  EdgeInsets.symmetric(horizontal: 50, vertical: 10),
+                      child: Container(
+                        width: 200,
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            onSave(widget.conceptUuid, batchNoController.text, quantityController.text, expiryDateController.text, buyingPriceController.text, remarksController.text);
+                          },
+                          child: savingStock ? CircularProgressLoader('Saving data') : Text(
+                            'Save',
+                            style: TextStyle(color: Colors.white, fontSize: 18,),
+                          ),
+                        ),
+                      ),
+                    ),
+                    areSomeFieldsMissing ? Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 50),
+                      child: Text('Some fields are not set', textAlign: TextAlign.center, style: TextStyle(color: Colors.red),),
+                    ): Text('')
                   ],
-                )
-            ),
-            Padding(
-              //padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 0),
-              padding: EdgeInsets.symmetric(horizontal: 50, vertical: 10),
-              child: TextField(
-                controller: buyingPriceController,
-                onChanged: (event) {
-                  updateFormStatus();
-                },
-                keyboardType: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                ],
-                decoration: InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: 'Buying price',
-                    hintText: 'Enter buying price'),
-                maxLines: 1,
-              ),
-            ),
-            Padding(
-              //padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 0),
-              padding: EdgeInsets.symmetric(horizontal: 50, vertical: 10),
-              child: TextField(
-                controller: remarksController,
-                keyboardType: TextInputType.text,
-                decoration: InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: 'Remarks',
-                    hintText: 'Enter remarks'),
-                maxLines: 1,
-              ),
-            ),
-            Padding(
-              padding:  EdgeInsets.symmetric(horizontal: 50, vertical: 10),
-              child: Container(
-                width: 200,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: () {
-                    onSave(widget.conceptUuid, batchNoController.text, quantityController.text, expiryDateController.text, buyingPriceController.text, remarksController.text);
-                  },
-                  child: savingStock ? CircularProgressLoader('Saving data') : Text(
-                    'Save',
-                    style: TextStyle(color: Colors.white, fontSize: 18,),
-                  ),
-                ),
-              ),
-            ),
-            areSomeFieldsMissing ? Padding(
-              padding: EdgeInsets.symmetric(horizontal: 50),
-              child: Text('Some fields are not set', textAlign: TextAlign.center, style: TextStyle(color: Colors.red),),
-            ): Text('')
-          ],
-        ),
+                ): Text('Select BATCH')
+              ],
+            ): Text('Loading');
+          },
+        )
       ),
     );
   }
@@ -216,14 +259,13 @@ class _StockDataFormState extends State<StockDataForm> {
         };
 
         final Map<String, Object> response = await saveStock(widget.baseUrl, widget.authToken, data);
-        print(response);
         if (response['item'] != null) {
           setState(() {
             savingStock = false;
             quantityController.value =  quantityController.value.copyWith(text: '',);
-            expiryDateController.value =  expiryDateController.value.copyWith(text: '',);
-            buyingPriceController.value =  buyingPriceController.value.copyWith(text: '',);
-            remarksController.value =  remarksController.value.copyWith(text: '',);
+            // expiryDateController.value =  expiryDateController.value.copyWith(text: '',);
+            // buyingPriceController.value =  buyingPriceController.value.copyWith(text: '',);
+            // remarksController.value =  remarksController.value.copyWith(text: '',);
           });
         }
       }

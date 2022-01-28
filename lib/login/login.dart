@@ -32,23 +32,23 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   login(String basicAuth, String address) async {
-    final ping = Ping(address, count: 5);
-    ping.stream.listen((event) {
-      if (event.error == 'UnknownHost') {
-        setState(() {
-          pingDone = true;
-          serverNotFound = false;
-          isPhoneConnectedToInternet = true;
-          authenticating = true;
-        });
-      } else {
-        setState(() {
-          pingDone = true;
-          serverNotFound = true;
-        });
-      }
-    });
-    if (!serverNotFound && pingDone) {
+    // final ping = Ping(address, count: 5);
+    // ping.stream.listen((event) {
+    //   if (event.error == 'UnknownHost') {
+    //     setState(() {
+    //       pingDone = true;
+    //       serverNotFound = false;
+    //       isPhoneConnectedToInternet = true;
+    //       authenticating = true;
+    //     });
+    //   } else {
+    //     setState(() {
+    //       pingDone = true;
+    //       serverNotFound = true;
+    //     });
+    //   }
+    // });
+    // if (!serverNotFound && pingDone) {
       final response = await http.get(
         address + '/openmrs/ws/rest/v1/session?v=custom:(authenticated,user:(privileges:(uuid,name,roles),roles:(uuid,name),userProperties))',headers: <String, String>{'Authorization': basicAuth},
       );
@@ -69,7 +69,7 @@ class _LoginPageState extends State<LoginPage> {
           failedToLogin = true;
         });
       }
-    }
+    // }
     // try {
     //   final result = await InternetAddress.lookup(address);
     //   if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
@@ -82,7 +82,7 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    addressController.value = addressController.value.copyWith(text: 'http://icare.dhis2.udsm.ac.tz',);
+    addressController.value = addressController.value.copyWith(text: 'https://icare.dhis2.udsm.ac.tz',);
     return Scaffold(
         backgroundColor: Colors.white,
         body: SingleChildScrollView(

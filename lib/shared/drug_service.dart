@@ -1,5 +1,7 @@
 
 
+import 'package:flutter/material.dart';
+
 import '/models/drug_response_model.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -44,13 +46,12 @@ Future <DrugReferenceMapModel> createDrugReferenceMap(String baseUrl, String bas
 
 
 Future <Map<String, Object>> saveStock(String baseUrl, String basicAuthToken, data) async {
+  String path = baseUrl + '/openmrs/ws/rest/v1/store/ledger';
+  print(path);
+  print(jsonEncode(data));
   final dynamic response = await http.post(
-    baseUrl + '/openmrs/ws/rest/v1/store/ledger',body: jsonEncode(data), headers: <String, String>{'Authorization': basicAuthToken, 'Content-type': 'application/json;charset=utf-8'},
+    path,body: jsonEncode(data), headers: <String, String>{'Authorization': basicAuthToken, 'Content-type': 'application/json;charset=utf-8'},
   );
-
-  print("@@@@@########################################################################");
-  print( json.decode(response.body));
-  print("@@@@@########################################################################");
   final Map<String, Object> responseMap = json.decode(response.body);
   return responseMap;
 }
@@ -62,4 +63,29 @@ Future <Map<String, Object>> getBillableItemUsingConceptUuid(String baseUrl, Str
   );
   final Map<String, Object> responseMap = json.decode(response.body);
   return responseMap;
+}
+
+
+// STOCK STATUS
+Future <List<DropdownMenuItem<dynamic>>> getStockStatusOfTheItem(String baseUrl, String basicAuthToken, String itemUuid) async {
+  final String path = baseUrl + '/openmrs/ws/rest/v1/store/item/' + itemUuid +'/stock';
+  final dynamic response = await http.get(
+    path,headers: <String, String>{'Authorization': basicAuthToken},
+  );
+  final stockItems = json.decode(response.body);
+  final stockItemsList = stockItems.map((item) => jsonEncode(item)).toList();
+  final uniqueJsonList = stockItemsList.toSet().toList();
+  final formattedUniqJsonList = uniqueJsonList.map((item) => jsonDecode(item)).toList();
+  Map<String, dynamic> mp = {};
+  for (var item in formattedUniqJsonList) {
+    mp[item['batch']] = item;
+  }
+  var filteredList = mp.values.toList();
+  List<DropdownMenuItem<dynamic>> responseMap = filteredList.map<DropdownMenuItem<dynamic>>((item) {
+    return DropdownMenuItem<dynamic>(
+      value: jsonEncode(item),
+      child: Text(item['batch'], overflow: TextOverflow.ellipsis),
+    );
+  }).toList();
+  return responseMap == null ? []: responseMap;
 }
